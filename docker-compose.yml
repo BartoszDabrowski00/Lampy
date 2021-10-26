@@ -1,0 +1,29 @@
+version: "3"
+services:
+    mysql4prestashop:
+        image: mysql:5.7
+        volumes:
+            - mysql_data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: admin
+        networks:
+            - prestashop-net
+        ports:
+            - 3307:3306
+
+    prestashop:
+        image: prestashop/prestashop
+        environment:
+            DB_SERVER: mysql4prestashop
+        networks:
+            - prestashop-net
+        ports:
+            - 8080:80
+        depends_on:
+            - mysql4prestashop
+
+networks:
+    prestashop-net:
+
+volumes:
+    mysql_data:
