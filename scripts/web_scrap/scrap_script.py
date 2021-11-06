@@ -67,15 +67,17 @@ def get_products(baseurl, lamps, category_list, categories_links):
                 'category': category_list[i][2],
                 'Wysokość': findSpec(itemsoup, 'Wysokość:'),
                 'Szerokość': findSpec(itemsoup, 'Szerokość:'),
-                'Materiał': findSpec(itemsoup, 'Materiał:'),
-                'Kolor': findSpec(itemsoup, 'Kolor podstawowy:'),
-                'Trzonek': findSpec(itemsoup, 'Trzonek:'),
-                'Moc żarówki': findSpec(itemsoup, 'Moc żarówki:'),
-                'Napięcie zasilania': findSpec(itemsoup, 'Napięcie zasilania:'),
-                'Ilość żarówek': findSpec(itemsoup, 'Ilość żarówek:'),
-                'Kompatybilna z LED': findSpec(itemsoup, 'Kompatybilna z LED:'),
-                'Źródło światła w komplecie': findSpec(itemsoup, 'Źródło światła w komplecie:'),
-                'Klasa szczelności': findSpec(itemsoup, 'Klasa szczelności:')
+                'Specyfikacja':
+                    'Materiał:' + findSpec(itemsoup, 'Materiał:') + '   ' +
+                    'Kolor:' + findSpec(itemsoup, 'Kolor podstawowy:') + '   ' +
+                    'Trzonek:' + findSpec(itemsoup, 'Trzonek:') + '   ' +
+                    'Moc żarówkiL' + findSpec(itemsoup, 'Moc żarówki:') + '   ' +
+                    'Napięcie zasilaniaL' + findSpec(itemsoup, 'Napięcie zasilania:') + '   ' +
+                    'Ilość żarówekL' + findSpec(itemsoup, 'Ilość żarówek:') + ' ' +
+                    'Kompatybilna z LEDL' + findSpec(itemsoup, 'Kompatybilna z LED:') + '   ' +
+                    'Źródło światła w komplecieL' + findSpec(itemsoup, 'Źródło światła w komplecie:') + '   ' +
+                    'Klasa szczelnościL' + findSpec(itemsoup, 'Klasa szczelności:')
+
             }
             lamps.append(lamp)
 
@@ -115,3 +117,4 @@ if __name__ == '__main__':
         scrap()
     else:
         lamps, categories = load()
+        save(lamps, categories)
