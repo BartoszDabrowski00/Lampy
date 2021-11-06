@@ -1,19 +1,26 @@
-import json
-
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+import pickle
+
+LOAD = False
 
 
-def get_categories(lamps, baseurl, categories_links):
-    req = requests.get(f'{baseurl}/lampy-sufitowe-c-760.html')
+def get_categories(category_list, baseurl, categories_links, endpoint, index, home):
+    subcategories_limit = 8
+    req = requests.get(f'{baseurl}{endpoint}')
     soup = BeautifulSoup(req.content, 'lxml')
     categories = soup.find_all('li', class_='OknoRwd')
-
     for category in categories:
+        subcategories_limit -= 1
+        if subcategories_limit == 0:
+            break
+        index += 1
         link = category.find_all('a', href=True)[0]['href']
         name = category.find('span').get_text(strip=True)
-        lamps[name] = {}
+        category_list.append([index, 1, name, home, 0, name])
         categories_links.append(link)
+    return index
 
 
 def findSpec(itemsoup, specToFind):
@@ -25,15 +32,13 @@ def findSpec(itemsoup, specToFind):
     return ''
 
 
-def get_products(baseurl, lamps, categories_links):
+def get_products(baseurl, lamps, category_list, categories_links):
     productlinks = []
-    keys_list = list(lamps.keys())
     for i in range(len(categories_links)):
-        print(keys_list[i])
+        print(category_list[i])
         req = requests.get(categories_links[i])
         soup = BeautifulSoup(req.content, 'lxml')
         productlist = soup.find_all('div', class_='Okno OknoRwd')
-        category_products = []
 
         for item in productlist:
             link = item.find_all('a', href=True)[0]
@@ -59,35 +64,54 @@ def get_products(baseurl, lamps, categories_links):
                 'inInventory': inInventory,
                 'picture': picture,
                 'description': description,
-                'specs': [{'Wysokość': findSpec(itemsoup, 'Wysokość:')},
-                          {'Szerokość': findSpec(itemsoup, 'Szerokość:')},
-                          {'Materiał': findSpec(itemsoup, 'Materiał:')},
-                          {'Kolor': findSpec(itemsoup, 'Kolor podstawowy:')},
-                          {'Trzonek': findSpec(itemsoup, 'Trzonek:')},
-                          {'Moc żarówki': findSpec(itemsoup, 'Moc żarówki:')},
-                          {'Napięcie zasilania': findSpec(itemsoup, 'Napięcie zasilania:')},
-                          {'Ilość żarówek': findSpec(itemsoup, 'Ilość żarówek:')},
-                          {'Kompatybilna z LED': findSpec(itemsoup, 'Kompatybilna z LED:')},
-                          {'Źródło światła w komplecie': findSpec(itemsoup, 'Źródło światła w komplecie:')},
-                          {'Klasa szczelności': findSpec(itemsoup, 'Klasa szczelności:')}]
+                'category': category_list[i][2],
+                'Wysokość': findSpec(itemsoup, 'Wysokość:'),
+                'Szerokość': findSpec(itemsoup, 'Szerokość:'),
+                'Materiał': findSpec(itemsoup, 'Materiał:'),
+                'Kolor': findSpec(itemsoup, 'Kolor podstawowy:'),
+                'Trzonek': findSpec(itemsoup, 'Trzonek:'),
+                'Moc żarówki': findSpec(itemsoup, 'Moc żarówki:'),
+                'Napięcie zasilania': findSpec(itemsoup, 'Napięcie zasilania:'),
+                'Ilość żarówek': findSpec(itemsoup, 'Ilość żarówek:'),
+                'Kompatybilna z LED': findSpec(itemsoup, 'Kompatybilna z LED:'),
+                'Źródło światła w komplecie': findSpec(itemsoup, 'Źródło światła w komplecie:'),
+                'Klasa szczelności': findSpec(itemsoup, 'Klasa szczelności:')
             }
-            category_products.append(lamp)
-        lamps[keys_list[i]] = category_products
+            lamps.append(lamp)
 
 
-def save_lamps(lamps):
-    with open('scrap_data.json', 'w') as file:
-        json.dump(lamps, file)
+def save(lamps, categories):
+    with open('categories.pickle', 'wb') as handle:
+        pickle.dump(categories, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('lamps.pickle', 'wb') as handle:
+        pickle.dump(lamps, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    pd.DataFrame(categories).to_csv('categories.csv', sep=',', encoding='utf-8', index=False)
+    pd.DataFrame(lamps).to_csv('lamps.csv', sep=',', encoding='utf-8', index=False)
+
+
+def load():
+    with open('lamps.pickle', 'rb') as handle:
+        lamps = pickle.load(handle)
+    with open('categories.pickle', 'rb') as handle:
+        categories = pickle.load(handle)
+    return lamps, categories
 
 
 def scrap():
     baseurl = "https://polskielampy.pl"
-    lamps = {}
+    lamps = []
     categories_links = []
-    get_categories(lamps, baseurl, categories_links)
-    get_products(baseurl, lamps, categories_links)
-    save_lamps(lamps)
+    category_list = []
+    endpoints = [('/lampy-sufitowe-c-760.html', 'Lampy sufitowe'), ('/lampy-wiszace-c-134.html', 'Lampy wiszące')]
+    index = 0
+    for endpoint, home in endpoints:
+        index = get_categories(category_list, baseurl, categories_links, endpoint, index, home)
+    get_products(baseurl, lamps, category_list, categories_links)
+    save(lamps, category_list)
 
 
 if __name__ == '__main__':
-    scrap()
+    if not LOAD:
+        scrap()
+    else:
+        lamps, categories = load()
