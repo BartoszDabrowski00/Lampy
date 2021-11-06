@@ -12,7 +12,9 @@ services:
             - 3307:3306
 
     prestashop:
-        image: prestashop/prestashop
+        image: my_prestashop
+        volumes:
+            - $PWD/swap:/swap
         environment:
             DB_SERVER: mysql4prestashop
         networks:
