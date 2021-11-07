@@ -15,3 +15,9 @@ To run docker-compose:
 
 Prestashop port: 8080
 MySQL port: 3307
+
+
+To import data from an archive to a database, run this command inside the container with mysql:
+```
+gunzip < $ARCHIVE_LOCATION | mysql -u root -padmin mysql
+```
