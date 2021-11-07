@@ -12,13 +12,16 @@ services:
             - 3307:3306
 
     prestashop:
-        image: prestashop/prestashop
+        image: my_prestashop
+        volumes:
+            - $PWD/swap:/swap
         environment:
             DB_SERVER: mysql4prestashop
         networks:
             - prestashop-net
         ports:
             - 8080:80
+            - 8091:443
         depends_on:
             - mysql4prestashop
 
