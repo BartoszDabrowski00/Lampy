@@ -21,6 +21,7 @@ services:
             - prestashop-net
         ports:
             - 8080:80
+            - 8091:443
         depends_on:
             - mysql4prestashop
 
