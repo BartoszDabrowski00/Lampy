@@ -11,11 +11,11 @@ MySQL port: 3307
 ## Importing settings
 To import data from an archive to a database:
 - set up containers
-- copy the archive to the swap space:
+- copy the archive to the container:
 ```
-sudo cp mysqldump.sql.gz swap/
+docker cp mysqldump.sql.gz  lampy_mysql4prestashop_1:/
 ```
 - run this command inside the container with mysql:
 ```
-gunzip < /swap/mysqldump.sql.gz | mysql -u root -padmin mysql
+gunzip < /mysqldump.sql.gz | mysql -u root -padmin mysql
 ```
