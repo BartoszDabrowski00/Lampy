@@ -1,14 +1,4 @@
 # Lampy
-## Building the base image
-To build the needed docker image run in console:
-```
-docker build -t my_prestashop $PATH_TO_DOCKERFILE
-```
-In case the dockerfile is in the current working directory, simply run:
-```
-docker build -t my_prestashop .
-```
-
 ## Setting up containers
 To run docker-compose:
 - install docker for windows

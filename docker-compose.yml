@@ -12,7 +12,9 @@ services:
             - 3307:3306
 
     prestashop:
-        image: my_prestashop
+        image: prestashop/prestashop
+        volumes:
+            - $PWD/src:/var/www/html
         environment:
             DB_SERVER: mysql4prestashop
         networks:
