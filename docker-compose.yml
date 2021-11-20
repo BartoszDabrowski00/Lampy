@@ -1,31 +1,39 @@
 version: "3"
 services:
-    mysql4prestashop:
-        image: mysql:5.7
-        volumes:
-            - mysql_data:/var/lib/mysql
-        environment:
-            MYSQL_ROOT_PASSWORD: admin
-        networks:
-            - prestashop-net
-        ports:
-            - 3307:3306
+ presta_sql:
+  image: mysql:5.7
+  volumes:
+   - ./database:/docker-entrypoint-initdb.d
+  environment:
+   MYSQL_ROOT_USER: root
+   MYSQL_DATABASE: prestashop
+   MYSQL_ROOT_PASSWORD: admin
+  networks:
+   - prestashop-net
+  ports:
+   - 3307:3306
 
-    prestashop:
-        image: prestashop/prestashop
-        volumes:
-            - $PWD/src:/var/www/html
-        environment:
-            DB_SERVER: mysql4prestashop
-        networks:
-            - prestashop-net
-        ports:
-            - 8080:80
-        depends_on:
-            - mysql4prestashop
-
+ presta_presta:
+  image: prestabiznes
+  build:
+   context: .
+   dockerfile: Dockerfile
+  volumes:
+   - ./src:/var/www/html
+  environment:
+   DB_SERVER: lampy_presta_sql_1
+   PS_INSTALL_AUTO: 0
+   PS_ERASE_DB: 0
+   DB_USER: root
+   DB_PASSWD: admin
+   DB_NAME: prestashop
+   PS_DEV_MODE: 0
+   PS_DOMAIN:  lampy_presta_sql_1
+  networks:
+   - prestashop-net
+  ports:
+   - 8090:80
+  depends_on:
+   - presta_sql
 networks:
-    prestashop-net:
-
-volumes:
-    mysql_data:
+ prestashop-net:
