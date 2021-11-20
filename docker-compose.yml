@@ -4,6 +4,7 @@ services:
   image: mysql:5.7
   volumes:
    - ./database:/docker-entrypoint-initdb.d
+  restart: always
   environment:
    MYSQL_ROOT_USER: root
    MYSQL_DATABASE: prestashop
@@ -14,6 +15,8 @@ services:
    - 3307:3306
 
  presta_presta:
+  depends_on:
+   - presta_sql
   image: prestabiznes
   build:
    context: .
@@ -21,14 +24,16 @@ services:
   volumes:
    - ./src:/var/www/html
   environment:
-   DB_SERVER: lampy_presta_sql_1
+   DB_PREFIX: ps_
+   DB_SERVER: presta_sql
    PS_INSTALL_AUTO: 0
    PS_ERASE_DB: 0
    DB_USER: root
    DB_PASSWD: admin
    DB_NAME: prestashop
-   PS_DEV_MODE: 0
-   PS_DOMAIN:  lampy_presta_sql_1
+   PS_DEV_MODE: 1
+   PS_FOLDER_ADMIN: admin1
+   PS_DOMAIN: localhost:8090
   networks:
    - prestashop-net
   ports:
