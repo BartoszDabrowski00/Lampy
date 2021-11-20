@@ -6,7 +6,18 @@ import pickle
 LOAD = False
 
 
-def get_categories(category_list, baseurl, categories_links, endpoint, index, home):
+# main_category_list contains:
+# [0] id, [1] category name
+def get_main_categories(endpoints, main_category_list):
+    i = 1
+    for endpoint in endpoints:
+        main_category_list.append([i, endpoint[2]])
+        i += 1
+
+
+# category_list contains:
+# [0] id, [1] main category id, [2] category name
+def get_categories(category_list, baseurl, categories_links, endpoint, main_index, index):
     subcategories_limit = 8
     req = requests.get(f'{baseurl}{endpoint}')
     soup = BeautifulSoup(req.content, 'lxml')
@@ -18,7 +29,7 @@ def get_categories(category_list, baseurl, categories_links, endpoint, index, ho
         index += 1
         link = category.find_all('a', href=True)[0]['href']
         name = category.find('span').get_text(strip=True)
-        category_list.append([index, 1, name, home, 0, name])
+        category_list.append([index, main_index, name])
         categories_links.append(link)
     return index
 
@@ -30,6 +41,16 @@ def findSpec(itemsoup, specToFind):
         if correctTag:
             return correctTag.findNext('strong').get_text(strip=True)
     return ''
+
+
+def textToPrice(priceText):
+    priceFloat = 0
+    for letter in priceText:
+        if letter >= '0' and letter <= '9':
+            priceFloat += int(letter)
+            priceFloat *= 10
+    priceFloat /= 1000
+    return priceFloat
 
 
 def get_products(baseurl, lamps, category_list, categories_links):
@@ -51,16 +72,24 @@ def get_products(baseurl, lamps, category_list, categories_links):
 
             name = itemsoup.find('h1', itemprop='name').get_text(strip=True)
             catalognumber = itemsoup.find('strong', itemprop='mpn').get_text(strip=True)
-            price = itemsoup.find('span', itemprop='price')['content']
             inInventory = int(itemsoup.find('p', id="StanMagazynowy").find('img')['src'][46]) * 2
             picture = baseurl + '/' + itemsoup.find('img', itemprop='image')['src']
             description = itemsoup.find('div', itemprop='description').get_text(strip=True)
             description.replace(u'\xa0', u' ')
+            try:
+                price = textToPrice(itemsoup.find('id', itemprop='CenaPoprzednia').find('strong'))
+                break
+            except AttributeError:
+                price = float(itemsoup.find('span', itemprop='price')['content'])
 
             lamp = {
+                'ID': i + 100,
                 'name': name,
                 'catalognumber': catalognumber,
-                'price': price,
+                'cena netto': price,
+                'cena brutto': price / 1.23,
+                'ID regula podatkowa': 1,
+                'ID kategorii': category_list[i][0],
                 'inInventory': inInventory,
                 'picture': picture,
                 'description': description,
@@ -103,11 +132,14 @@ def scrap():
     baseurl = "https://polskielampy.pl"
     lamps = []
     categories_links = []
+    main_category_list = []
     category_list = []
-    endpoints = [('/lampy-sufitowe-c-760.html', 'Lampy sufitowe'), ('/lampy-wiszace-c-134.html', 'Lampy wiszące')]
+    endpoints = [(1, '/lampy-sufitowe-c-760.html', 'Lampy sufitowe'), (2, '/lampy-wiszace-c-134.html', 'Lampy wiszące')]
     index = 0
-    for endpoint, home in endpoints:
-        index = get_categories(category_list, baseurl, categories_links, endpoint, index, home)
+    get_main_categories(endpoints, main_category_list)
+    for main_index, endpoint, home in endpoints:
+        index = get_categories(category_list, baseurl, categories_links, endpoint, main_index, index)
+    print(category_list)
     get_products(baseurl, lamps, category_list, categories_links)
     save(lamps, category_list)
 
