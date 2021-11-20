@@ -1,5 +1,12 @@
 # Lampy
 
+# Dane
+Mysql db_name: prestashop
+Mysql username@password:  root@admin <br />
+Panel admina mail: bizneselektronicznylampy@gmail.com <br />
+Panel admina hasło: bizneselektroniczny <br />
+
+# Setup
 Clone branch: <br />
 git clone -b <branch_name> <git_repo>  <br />
 
