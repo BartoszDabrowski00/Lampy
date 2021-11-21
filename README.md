@@ -22,3 +22,6 @@ mysql -u root -padmin <br />
 use prestashop; <br />
 show tables; <br />
 At ~283 tables mysql will restart and then presta will be working <br />
+
+Prestashop port: 8080 <br />
+MySQL port: 3307 <br />
