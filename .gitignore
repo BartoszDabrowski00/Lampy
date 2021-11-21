@@ -18,3 +18,4 @@ config/xml/*.xml
 *sitemap.xml
 themes/*/cache/
 modules/*/config*.xml
+/src/var/logs/*

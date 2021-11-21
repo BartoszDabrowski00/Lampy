@@ -1,5 +1,9 @@
 version: "3"
 services:
+ presta_smtp:
+  image: namshi/smtp
+  networks:
+   - prestashop-net
  presta_sql:
   image: mysql:5.7
   volumes:
