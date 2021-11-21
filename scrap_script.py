@@ -25,7 +25,7 @@ def get_categories(category_list, baseurl, categories_links, endpoint, main_inde
         index += 1
         link = category.find_all('a', href=True)[0]['href']
         name = category.find('span').get_text(strip=True)
-        category_list.append([0, category_list[main_index][2], name])
+        category_list.append([0, category_list[main_index - 1][2], name])
         categories_links.append(link)
     return index
 
@@ -88,18 +88,19 @@ def get_attributes(itemsoup):
     return text
 
 
-def get_products(baseurl, lamps, category_list, categories_links, attribute_list):
+def get_products(baseurl, lamps, category_list, categories_links, attribute_list, skip):
     productlinks = []
     productIndex = 100
     for i in range(len(categories_links)):
+        print(category_list[i+skip][2])
         req = requests.get(categories_links[i])
         soup = BeautifulSoup(req.content, 'lxml')
-        productlist1 = soup.find_all('div', class_='Okno OknoRwd')
-        productlist = []
-        productlist.append(productlist1[0])
-        productlist.append(productlist1[1])
-        productlist.append(productlist1[2])
-        productlist.append(productlist1[3])
+        productlist = soup.find_all('div', class_='Okno OknoRwd')
+        #productlist = []
+        #productlist.append(productlist1[0])
+        #productlist.append(productlist1[1])
+        #productlist.append(productlist1[2])
+        #productlist.append(productlist1[3])
 
         for item in productlist:
             link = item.find_all('a', href=True)[0]
@@ -122,7 +123,8 @@ def get_products(baseurl, lamps, category_list, categories_links, attribute_list
             except AttributeError:
                 price = float(itemsoup.find('span', itemprop='price')['content'])
 
-            add_attribute(attribute_list, productIndex, inInventory)
+            if i == 0:
+                add_attribute(attribute_list, productIndex, inInventory)
             lamp = {
                 'ID': productIndex,
                 'name': name,
@@ -130,7 +132,7 @@ def get_products(baseurl, lamps, category_list, categories_links, attribute_list
                 #'cena netto': price / 1.23,
                 'cena brutto': price,
                 'ID regula podatkowa': 1,
-                'ID kategorii': category_list[i][2],
+                'ID kategorii': category_list[i+skip][2],
                 'inInventory': inInventory,
                 'picture': picture,
                 'description': description,
@@ -139,8 +141,8 @@ def get_products(baseurl, lamps, category_list, categories_links, attribute_list
             }
             lamps.append(lamp)
             productIndex += 1
-            print(lamp)
-            print(attribute_list)
+            #print(lamp)
+            #print(attribute_list)
 
 
 def save(lamps, categories, attributes):
@@ -169,14 +171,14 @@ def scrap():
     categories_links = []
     category_list = []
     attribute_list = []
-    endpoints = [(1, '/lampy-sufitowe-c-760.html', 'Lampy sufitowe'), (2, '/lampy-wiszace-c-134.html', 'Lampy wiszące')]
+    endpoints = [(1, '/lampy-stolowe-c-841_765.html', 'Lampy stołowe'), (2, '/lampy-wiszace-c-134.html', 'Lampy wiszące'), (3, '/lampy-sufitowe-c-760.html', 'Lampy sufitowe')]
     index = 0
     get_main_categories(endpoints, category_list)
     for main_index, endpoint, home in endpoints:
         index = get_categories(category_list, baseurl, categories_links, endpoint, main_index, index)
-    print(category_list)
-    print(attribute_list)
-    get_products(baseurl, lamps, category_list, categories_links, attribute_list)
+    #print(category_list)
+    #print(attribute_list)
+    get_products(baseurl, lamps, category_list, categories_links, attribute_list, len(endpoints))
     save(lamps, category_list, attribute_list)
 
 
